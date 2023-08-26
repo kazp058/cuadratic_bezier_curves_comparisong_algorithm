@@ -65,6 +65,9 @@ def make_curves(__amount):
     return [Curve.make_random(n) for n in range(1, __amount + 1)]
 
 
+acceptance = 60
+Centroid.acceptance = acceptance
+
 __curves: [Curve] = make_curves(3000)
 __centroids = [Centroid(__curves[__idcurve], __idcurve)
                for __idcurve in range(len(__curves))]
@@ -79,7 +82,7 @@ for __idx in range(len(solution)):
         similarities += __pointer_x.get_similarity_table(__pointer_y)
 
 print("total centroids: ", len(solution))
-acceptance = 75
+
 similar = list(filter(lambda x: float(
     x.split(",")[2]) >= acceptance, similarities))
 unsimilar = list(filter(lambda x: float(

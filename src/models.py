@@ -140,19 +140,22 @@ class Centroid:
             self.curves.append(__curve)
 
     def get_similarity_table(self, centroid_b: any = None):
-        avg = self.avg_similarity()
         sim_table = []
-        for __cidx in range(len(self.curves)):
-            __cx = self.curves[__cidx]
-            for __cidy in range(__cidx + 1, len(self.curves)):
-                __cy = self.curves[__cidy]
-                sim_table.append("%i,%i,%.4f" % (__cx.id, __cy.id, avg))
         if centroid_b != None:
+            __sim = self.centroid.similarity(centroid_b.centroid)
             for __cidx in range(len(self.curves)):
                 __cx = self.curves[__cidx]
                 for __cidy in range(len(centroid_b.curves)):
                     __cy = centroid_b.curves[__cidy]
+                    sim_table.append("%i,%i,%.4f" % (__cx.id, __cy.id, __sim))
+        else:
+            avg = self.avg_similarity()
+            for __cidx in range(len(self.curves)):
+                __cx = self.curves[__cidx]
+                for __cidy in range(__cidx + 1, len(self.curves)):
+                    __cy = self.curves[__cidy]
                     sim_table.append("%i,%i,%.4f" % (__cx.id, __cy.id, avg))
+
         return sim_table
 
     def avg_similarity(self):

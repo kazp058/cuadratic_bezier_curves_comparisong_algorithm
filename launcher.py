@@ -66,7 +66,7 @@ def make_curves(__amount):
 
 
 acceptance = 60
-Centroid.acceptance = acceptance
+Centroid.acceptance = 70
 
 __curves: [Curve] = make_curves(3000)
 __centroids = [Centroid(__curves[__idcurve], __idcurve)
@@ -76,16 +76,20 @@ solution = sort_curves(__centroids)
 similarities = []
 for __idx in range(len(solution)):
     __pointer_x = solution[__idx]
+    similarities += __pointer_x.get_similarity_table()
     for __idy in range(__idx + 1, len(solution)):
         __pointer_y = solution[__idy]
-
+        similarities += __pointer_y.get_similarity_table()
         similarities += __pointer_x.get_similarity_table(__pointer_y)
 
-print("total centroids: ", len(solution))
+print("total centroids:      ", len(solution))
 
 similar = list(filter(lambda x: float(
     x.split(",")[2]) >= acceptance, similarities))
 unsimilar = list(filter(lambda x: float(
     x.split(",")[2]) < acceptance, similarities))
-print("total similarities: ", len(similar))
+
+print("total similarities:   ", len(similar))
 print("total unsimilarities: ", len(unsimilar))
+print("_________________________________________")
+print("total output:         ", len(similarities))

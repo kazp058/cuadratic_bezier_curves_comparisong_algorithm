@@ -98,7 +98,7 @@ class Curve:
         __curve.point_a = Point.from_string(__point_a)
         __curve.point_b = Point.from_string(__point_b)
         __curve.point_c = Point.from_string(__point_c)
-        __curve.t = __t
+        __curve.t = float(__t)
 
         return __curve
 
@@ -177,7 +177,7 @@ class Cluster:
             __tcluster.add_cluster(cluster)
 
         __sims = list(
-            map(lambda curve: __tcluster.centroid.similarity(curve) > Cluster.acceptance,
+            map(lambda curve: __tcluster.centroid.similarity(curve) >= Cluster.acceptance,
                 __tcluster.curves))
         return reduce(lambda x, y: x and y, __sims)
 

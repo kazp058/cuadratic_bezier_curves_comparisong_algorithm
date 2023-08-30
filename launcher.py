@@ -2,17 +2,9 @@ from src.models import *
 import random
 
 
-def pop_takerandom(left, right):
-    joint = left + right
-    selected = random.choice(joint)
-    idx = joint.index(selected)
-
-    if idx < len(left):
-        left.pop(idx)
-    else:
-        idx = idx - len(left)
-        right.pop(idx)
-    return selected
+def pop_takerandom(clusters):
+    idx = random.randint(0, len(clusters) - 1)
+    return clusters.pop(idx)
 
 
 def trymerge(merged, cluster):
@@ -28,22 +20,15 @@ def trymerge(merged, cluster):
         merged.append(cluster)
 
 
-def merge_clusters(__left, __right):
+def merge_clusters(__clusters):
     merged = []
-    while len(__left) > 0 and len(__right) > 0:
+    while len(__clusters) > 0:
         if len(merged) == 0:
-            selected = pop_takerandom(__left, __right)
+            selected = pop_takerandom(__clusters)
             merged.append(selected)
         else:
-            selected = pop_takerandom(__left, __right)
+            selected = pop_takerandom(__clusters)
             trymerge(merged, selected)
-    while len(__left) > 0:
-        selected = __left.pop(0)
-        trymerge(merged, selected)
-
-    while len(__right) > 0:
-        selected = __right.pop(0)
-        trymerge(merged, selected)
 
     return merged
 
@@ -55,20 +40,22 @@ def sort_curves(clusters):
     mid = len(clusters) // 2
     left = clusters[: mid]
     right = clusters[mid:]
+
     sorted_left = sort_curves(left)
     sorted_right = sort_curves(right)
 
-    return merge_clusters(sorted_left, sorted_right)
+    return merge_clusters(sorted_left + sorted_right)
 
 
 def make_curves(__amount):
     return [Curve.make_random(n) for n in range(1, __amount + 1)]
 
 
-N = 100
+N = 200
 
-acceptance = 60
-Cluster.acceptance = 70
+similarity_requiered = 70
+Cluster.acceptance = 75
+assert similarity_requiered <= Cluster.acceptance
 
 __curves: [Curve] = make_curves(N)
 __clusters = [Cluster(__curves[__idcurve], __idcurve)
@@ -85,9 +72,9 @@ for __idx in range(len(solution)):
 print("\ntotal clusters:      ", len(solution))
 
 similar = list(filter(lambda x: float(
-    x.split(",")[2]) >= acceptance, similarities))
+    x.split(",")[2]) >= similarity_requiered, similarities))
 unsimilar = list(filter(lambda x: float(
-    x.split(",")[2]) < acceptance, similarities))
+    x.split(",")[2]) < similarity_requiered, similarities))
 
 print("amount of curves:     ", N)
 print("total similarities:   ", len(similar))

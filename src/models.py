@@ -129,10 +129,10 @@ class Cluster:
 
     acceptance = 60
 
-    def __init__(self, cluster: Curve, id: int = 0) -> None:
-        self.centroid = Curve.copy(cluster)
+    def __init__(self, curve: Curve, id: int = 0) -> None:
+        self.centroid = Curve.copy(curve)
         self.id = id
-        self.curves = [cluster]
+        self.curves = [curve]
 
     def add_cluster(self, __cluster: any):
         self.centroid.modify_avg(__cluster.centroid)
@@ -164,9 +164,21 @@ class Cluster:
             map(lambda x: self.centroid.similarity(x), self.curves)
         ) / len(self.curves)
 
+    def copy(self):
+        __cluster = Cluster(self.centroid)
+        __cluster.id = self.id
+        __cluster.curves = self.curves.copy()
+        return __cluster
+
     def stable_cluster(self, cluster: any = None):
+        __tcluster = self
+        if cluster != None:
+            __tcluster = self.copy()
+            __tcluster.add_cluster(cluster)
+
         __sims = list(
-            map(lambda curve: self.centroid.similarity(curve) > Cluster.acceptance, self.curves if cluster == None else self.curves + cluster.curves))
+            map(lambda curve: __tcluster.centroid.similarity(curve) > Cluster.acceptance,
+                __tcluster.curves))
         return reduce(lambda x, y: x and y, __sims)
 
     def __str__(self) -> str:

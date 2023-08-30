@@ -125,28 +125,28 @@ class Curve:
                       )
 
 
-class Centroid:
+class Cluster:
 
     acceptance = 60
 
-    def __init__(self, centroid: Curve, id: int = 0) -> None:
-        self.centroid = Curve.copy(centroid)
+    def __init__(self, cluster: Curve, id: int = 0) -> None:
+        self.centroid = Curve.copy(cluster)
         self.id = id
-        self.curves = [centroid]
+        self.curves = [cluster]
 
-    def add_centroid(self, __centroid: any):
-        self.centroid.modify_avg(__centroid.centroid)
-        for __curve in __centroid.curves:
+    def add_cluster(self, __cluster: any):
+        self.centroid.modify_avg(__cluster.centroid)
+        for __curve in __cluster.curves:
             self.curves.append(__curve)
 
-    def get_similarity_table(self, centroid_b: any = None):
+    def get_similarity_table(self, cluster_b: any = None):
         sim_table = []
-        if centroid_b != None:
-            __sim = self.centroid.similarity(centroid_b.centroid)
+        if cluster_b != None:
+            __sim = self.centroid.similarity(cluster_b.centroid)
             for __cidx in range(len(self.curves)):
                 __cx = self.curves[__cidx]
-                for __cidy in range(len(centroid_b.curves)):
-                    __cy = centroid_b.curves[__cidy]
+                for __cidy in range(len(cluster_b.curves)):
+                    __cy = cluster_b.curves[__cidy]
                     sim_table.append("%i,%i,%.4f" % (__cx.id, __cy.id, __sim))
         else:
             avg = self.avg_similarity()
@@ -164,10 +164,10 @@ class Centroid:
             map(lambda x: self.centroid.similarity(x), self.curves)
         ) / len(self.curves)
 
-    def stable_centroid(self, centroid: any = None):
+    def stable_cluster(self, cluster: any = None):
         __sims = list(
-            map(lambda x: self.centroid.similarity(x) > Centroid.acceptance, self.curves if centroid == None else self.curves + centroid.curves))
+            map(lambda curve: self.centroid.similarity(curve) > Cluster.acceptance, self.curves if cluster == None else self.curves + cluster.curves))
         return reduce(lambda x, y: x and y, __sims)
 
     def __str__(self) -> str:
-        return ("id: %i > centroide: [%s] \ncurvas: \n(\n\t") % (self.id, self.centroid) + ",\n\t".join(list(map(lambda x: str(x), self.curves))) + "\n)"
+        return ("id: %i > clustere: [%s] \ncurvas: \n(\n\t") % (self.id, self.centroid) + ",\n\t".join(list(map(lambda x: str(x), self.curves))) + "\n)"

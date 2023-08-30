@@ -15,10 +15,10 @@ def merge_clusters(clusters):
     merged = []
     while clusters.size greater than 0:
         if merged.size is 0:
-            selected = pop_takerandom(clusters) #pop a cluster from clusters
+            selected = pop_takerandom(clusters) #pop a random cluster from clusters
             merged.append(selected)
         else:
-            selected = pop_takerandom(clusters) #pop a cluster from clusters
+            selected = pop_takerandom(clusters) #pop a random cluster from clusters
             trymerge(merged, selected)
 
     return merged

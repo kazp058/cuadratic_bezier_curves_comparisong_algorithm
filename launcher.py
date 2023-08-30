@@ -82,7 +82,7 @@ for __idx in range(len(solution)):
     for __idy in range(__idx + 1, len(solution)):
         __pointer_y = solution[__idy]
         similarities += __pointer_x.get_similarity_table(__pointer_y)
-print("total centroids:      ", len(solution))
+print("\ntotal centroids:      ", len(solution))
 
 similar = list(filter(lambda x: float(
     x.split(",")[2]) >= acceptance, similarities))
@@ -92,7 +92,7 @@ unsimilar = list(filter(lambda x: float(
 print("amount of curves:     ", N)
 print("total similarities:   ", len(similar))
 print("total unsimilarities: ", len(unsimilar))
-print("_________________________________________")
+print("_______________________")
 expected = 0
 for n in range(1, N):
     expected = expected + n

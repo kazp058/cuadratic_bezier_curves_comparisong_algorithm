@@ -170,5 +170,4 @@ class Centroid:
         return reduce(lambda x, y: x and y, __sims)
 
     def __str__(self) -> str:
-        print(self.centroid)
-        return ("%i > [%s] \ncurvas: \n(\n\t") % (self.id, self.centroid) + ",\n\t".join(list(map(lambda x: str(x), self.curves))) + "\n)"
+        return ("id: %i > centroide: [%s] \ncurvas: \n(\n\t") % (self.id, self.centroid) + ",\n\t".join(list(map(lambda x: str(x), self.curves))) + "\n)"

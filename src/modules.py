@@ -7,14 +7,20 @@ class FileWriterManager():
 
     def include_fexport(self, filename, data):
         __out = self.__cache.get(filename, [])
-        self.__cache[filename] = __out + data[:]
+        __out.append(data[:])
+        self.__cache[filename] = __out
 
     def fflush(self):
         for __filename in self.__cache.keys():
-            __data = list(map(lambda __d: str(__d) +
-                          "\n", self.__cache[__filename]))
-            with open(".\\.data\\" + __filename, 'w+') as __file:
-                __file.writelines(__data)
+            __data = self.__cache[__filename]
+            mode = "w+"
+            with open(".\\.data\\" + __filename, mode) as __file:
+                for __d in __data:
+                    __d = list(map(lambda __d: str(__d) +
+                                   "\n", __d))
+                    __file.write("[\n")
+                    __file.writelines(__d)
+                    __file.write("]")
         self.__cache = {}
 
 
@@ -38,7 +44,7 @@ class FileReaderManager():
         for __filename in self.__cache.keys():
             with open(".\\.data\\" + __filename, 'r') as __file:
                 __rcache += list(map(lambda __s: self.__cache[__filename](
-                    __s.strip()), __file.readlines()))
+                    __s.strip()), filter(lambda x: not x.startswith("[") and not x.startswith("]"), __file.readlines())))
         self.__cache = {}
         return __rcache
 
@@ -80,7 +86,7 @@ class Menu:
             self.launch()
 
     def ask_option(self) -> any:
-        __opt_str = self.__ask_option_str + self.__option_pointer + \
+        __opt_str = self.__ask_option_str + " " + self.__option_pointer + \
             " " if self.__ask_option_str != None else self.__option_pointer + " "
 
         __opt: str = input(__opt_str)

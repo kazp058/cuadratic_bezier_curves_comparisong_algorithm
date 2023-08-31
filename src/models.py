@@ -136,8 +136,7 @@ class Cluster:
 
     def add_cluster(self, __cluster: any):
         self.centroid.modify_avg(__cluster.centroid)
-        for __curve in __cluster.curves:
-            self.curves.append(__curve)
+        self.curves = self.curves + __cluster.curves
 
     def get_similarity_table(self, cluster_b: any = None):
         sim_table = []

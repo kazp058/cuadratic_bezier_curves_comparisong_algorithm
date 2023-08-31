@@ -11,29 +11,24 @@ def pop_takerandom(clusters):
     return clusters.pop(idx)
 
 
-def trymerge(merged, cluster):
+def trymerge(clusters, target):
     __mcounter = 0
     __selected_merged = False
-    while __mcounter < len(merged) and not __selected_merged:
-        __m = merged[__mcounter]
-        if __m.stable_cluster(cluster):
-            __m.add_cluster(cluster)
+    while __mcounter < len(clusters) and not __selected_merged:
+        __m = clusters[__mcounter]
+        if __m.stable_cluster(target):
+            __m.add_cluster(target)
             __selected_merged = True
         __mcounter += 1
     if not __selected_merged:
-        merged.append(cluster)
+        clusters.append(target)
 
 
 def merge_clusters(__clusters):
     merged = []
     while len(__clusters) > 0:
-        if len(merged) == 0:
-            selected = pop_takerandom(__clusters)
-            merged.append(selected)
-        else:
-            selected = pop_takerandom(__clusters)
-            trymerge(merged, selected)
-
+        selected = pop_takerandom(__clusters)
+        trymerge(merged, selected)
     return merged
 
 
@@ -57,30 +52,41 @@ def make_rcurves(__amount):
 
 
 def invoke_curves(*args):
-    N = args[0]
-    frm = FileReaderManager()
-    frm.include_fimport("curves.csv", Curve.from_string)
-    __curves = frm.fgather()
-    print(Log("Trying to load curves"))
-    if __curves == None:
-        print(Log("Unable to load curves, file does not exist or is empty" % N))
+    if len(args) == 1:
+        args = args[0]
+    N, __curves, make_newset = args
+
+    if make_newset:
         __curves = make_rcurves(N)
         fwm = FileWriterManager()
         fwm.include_fexport("curves.csv", __curves)
         fwm.fflush()
-    elif len(__curves) != N:
-        print(Log("Loaded %i curves from files, but required %i" %
-              (len(__curves, N))))
-        if len(__curves) > N:
-            print(Log("Sliced %i curves from array" % (len(__curves) - N)))
-            __curves = __curves[:N]
-        if len(__curves) < N:
-            __curves = __curves + make_rcurves(N - len(__curves))
-        fwm = FileWriterManager()
-        fwm.include_fexport("curves.csv", __curves)
-        fwm.fflush()
     else:
-        print(Log("Loaded %i curves successfully from file" % N))
+        frm = FileReaderManager()
+        frm.include_fimport("curves.csv", Curve.from_string)
+        __curves = frm.fgather()
+        print(Log("Trying to load curves"))
+
+        if __curves == None:
+            print(Log("Unable to load curves, file does not exist or is empty" % N))
+            __curves = make_rcurves(N)
+            fwm = FileWriterManager()
+            fwm.include_fexport("curves.csv", __curves)
+            fwm.fflush()
+        elif len(__curves) != N:
+            print(Log("Loaded %i curves from files, but required %i" %
+                      (len(__curves), N)))
+            if len(__curves) > N:
+                print(Log("Sliced %i curves from array" % (len(__curves) - N)))
+                __curves = __curves[:N]
+            if len(__curves) < N:
+                __curves = __curves + make_rcurves(N - len(__curves))
+                fwm = FileWriterManager()
+                fwm.include_fexport("curves.csv", __curves)
+                fwm.fflush()
+
+        else:
+            print(Log("Loaded %i curves successfully from file" % N))
     return __curves
 
 
@@ -98,10 +104,12 @@ def generate_tsimilarities(solution):
 def call_algorithm(*args):
     if len(args) == 1:
         args = args[0]
-    __curves, func_algth = args
+    __curves, func_algth, write_output = args
 
     __clusters = [Cluster(__curves[__idcurve], __idcurve)
                   for __idcurve in range(len(__curves))]
+
+    print(Log("algorithm recieved: %i curves" % len(__curves)))
 
     start_time = time.time()
     solution = func_algth(__clusters)
@@ -109,22 +117,23 @@ def call_algorithm(*args):
     print(Log("total execution time: %.5f seconds" % (exec_time)))
     print(Log("total clusters: %i" % len(solution)))
 
-    similarities = generate_tsimilarities(solution)
+    if write_output:
+        similarities = generate_tsimilarities(solution)
 
-    similar = list(filter(lambda x: float(
-        x.split(",")[2]) >= similarity_requiered, similarities))
+        similar = list(filter(lambda x: float(
+            x.split(",")[2]) >= similarity_requiered, similarities))
 
-    unsimilar = list(filter(lambda x: float(
-        x.split(",")[2]) < similarity_requiered, similarities))
+        unsimilar = list(filter(lambda x: float(
+            x.split(",")[2]) < similarity_requiered, similarities))
 
-    fwm = FileWriterManager()
-    fwm.include_fexport("similar.csv", similar)
-    fwm.include_fexport("unsimilar.csv", unsimilar)
-    fwm.fflush()
+        fwm = FileWriterManager()
+        fwm.include_fexport("result.csv", similar)
+        fwm.include_fexport("result.csv", unsimilar)
+        fwm.fflush()
 
-    print(Log("total similarities: %i" % len(similar)))
-    print(Log("total unsimilarities: %i" % len(unsimilar)))
-    print(Log("total output: %i" % len(similarities)))
+        print(Log("total similarities: %i" % len(similar)))
+        print(Log("total unsimilarities: %i" % len(unsimilar)))
+        print(Log("total output: %i" % len(similarities)))
 
     return exec_time
 
@@ -141,8 +150,7 @@ def stress_algorithm(*args):
         __times = []
         for _r in range(times):
             __curves = make_rcurves(__amount)
-            __args = ((__curves, sort_curves),)
-            __times.append(call_algorithm(__curves, sort_curves))
+            __times.append(call_algorithm(__curves, sort_curves, False))
         __avg_time = reduce(lambda x, y: x+y, __times) / len(__times)
         data.append([__amount, __avg_time])
     # Create the pandas DataFrame
@@ -158,22 +166,22 @@ def close(*args):
 
 if __name__ == "__main__":
     N = 200
-    similarity_requiered = 70
+    similarity_requiered = 80
     Cluster.acceptance = 70
+    __curves = []
 
-    __curves = invoke_curves(N)
+    __curves = invoke_curves(N, __curves, False)
 
-    assert similarity_requiered <= Cluster.acceptance
     main_menu = Menu(self_call=True,
                      linejump_before=1,
                      ask_option_str="Select an option")
 
     main_menu.add_option("Call algorithm", call_algorithm,
-                         __curves, sort_curves)
+                         __curves, sort_curves, True)
     main_menu.add_option("Stress algorithm",
                          stress_algorithm, 10, 5000, 10, 5)
-    main_menu.add_option("Make new curves", invoke_curves, N)
-    main_menu.add_option("Change parameters", change_parameters)
+    main_menu.add_option("Make new curves", invoke_curves, N, __curves, True)
+    # main_menu.add_option("Change parameters", change_parameters)
     main_menu.add_option("Close program", close)
 
     main_menu.launch()
